@@ -13,7 +13,6 @@
   <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" alt="Next.js"/>
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"/>
   <img src="https://img.shields.io/badge/Prisma-7-2D3748?style=flat-square&logo=prisma" alt="Prisma"/>
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License"/>
 </p>
 
 <p align="center">
@@ -198,12 +197,6 @@ TravelTrack follows a **minimalistic design** approach:
 - 📐 Generous whitespace and clean typography (Inter)
 - 🎭 Subtle fade/slide-in animations for polish
 - 📱 Fully responsive — sidebar (desktop) + bottom tabs (mobile)
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
