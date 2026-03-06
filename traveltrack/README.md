@@ -78,6 +78,205 @@
 
 ---
 
+## 🏗️ System Architecture
+
+```mermaid
+graph TB
+    subgraph Client["🖥️ Client Layer"]
+        Browser["Browser"]
+        Pages["Next.js Pages<br/>(React Server Components)"]
+        Components["Shared Components<br/>(CurrencyConverter, QuickExpense)"]
+    end
+
+    subgraph AppRouter["⚡ Next.js App Router"]
+        AuthGroup["(auth) Route Group<br/>Login / Register"]
+        DashGroup["(dashboard) Route Group<br/>Dashboard / Trips / Expenses<br/>Analytics / Settings"]
+        Middleware["Session Middleware<br/>(NextAuth JWT)"]
+    end
+
+    subgraph API["📡 REST API Layer"]
+        AuthAPI["Auth API<br/>POST /api/auth/register<br/>POST /api/auth/[...nextauth]"]
+        TripsAPI["Trips API<br/>GET/POST /api/trips<br/>GET/PUT/DELETE /api/trips/[id]<br/>POST /api/trips/[id]/budget<br/>GET/POST /api/trips/[id]/itinerary"]
+        ExpensesAPI["Expenses API<br/>GET/POST /api/expenses<br/>DELETE /api/expenses/[id]"]
+    end
+
+    subgraph Services["🔧 Service Layer (lib/)"]
+        AuthLib["auth.ts<br/>NextAuth Config"]
+        Validation["validations.ts<br/>Zod Schemas"]
+        Currency["currency.ts<br/>Exchange Rates"]
+        PDFExport["pdf-export.ts<br/>Report Generation"]
+        DataExport["data-export.ts<br/>CSV & JSON Export"]
+        Utils["utils.ts<br/>Formatters & Constants"]
+    end
+
+    subgraph Data["🗄️ Data Layer"]
+        PrismaClient["Prisma ORM Client"]
+        SQLite["SQLite Database<br/>(dev.db)"]
+    end
+
+    Browser --> Pages
+    Pages --> Components
+    Pages --> AuthGroup
+    Pages --> DashGroup
+    AuthGroup --> Middleware
+    DashGroup --> Middleware
+    Middleware --> AuthAPI
+    DashGroup --> TripsAPI
+    DashGroup --> ExpensesAPI
+    AuthAPI --> AuthLib
+    TripsAPI --> Validation
+    ExpensesAPI --> Validation
+    TripsAPI --> PrismaClient
+    ExpensesAPI --> PrismaClient
+    AuthAPI --> PrismaClient
+    DashGroup --> Currency
+    DashGroup --> PDFExport
+    DashGroup --> DataExport
+    DashGroup --> Utils
+    PrismaClient --> SQLite
+
+    style Client fill:#eef2ff,stroke:#4f46e5
+    style AppRouter fill:#f0fdf4,stroke:#16a34a
+    style API fill:#fef3c7,stroke:#d97706
+    style Services fill:#fdf2f8,stroke:#db2777
+    style Data fill:#f1f5f9,stroke:#475569
+```
+
+### Data Model Relationships
+
+```mermaid
+erDiagram
+    User ||--o{ Trip : creates
+    User ||--o{ Expense : logs
+    Trip ||--o| Budget : has
+    Trip ||--o{ Expense : contains
+    Trip ||--o{ ItineraryItem : plans
+    Budget ||--o{ CategoryBudget : allocates
+
+    User {
+        string id PK
+        string email UK
+        string name
+        string passwordHash
+        string defaultCurrency
+    }
+    Trip {
+        string id PK
+        string userId FK
+        string name
+        string destination
+        datetime startDate
+        datetime endDate
+        string purpose
+        string status
+    }
+    Expense {
+        string id PK
+        string tripId FK
+        string userId FK
+        float amount
+        string currency
+        string category
+        string merchant
+        string paymentMethod
+    }
+    Budget {
+        string id PK
+        string tripId FK
+        float totalBudget
+        float dailyLimit
+        string currency
+    }
+    CategoryBudget {
+        string id PK
+        string budgetId FK
+        string category
+        float allocated
+    }
+    ItineraryItem {
+        string id PK
+        string tripId FK
+        string title
+        string location
+        float estimatedCost
+        int duration
+    }
+    ExchangeRate {
+        string id PK
+        string fromCurrency
+        string toCurrency
+        float rate
+    }
+```
+
+---
+
+## 🔄 Application Workflow
+
+```mermaid
+flowchart TD
+    Start([User Opens App]) --> AuthCheck{Authenticated?}
+
+    AuthCheck -- No --> LoginPage["🔐 Login / Register Page"]
+    LoginPage --> Credentials["Enter Email & Password"]
+    Credentials --> AuthAPI["NextAuth API<br/>Validate & Issue JWT"]
+    AuthAPI --> AuthCheck
+
+    AuthCheck -- Yes --> Dashboard["📊 Dashboard"]
+
+    Dashboard --> Action{User Action}
+
+    Action --> CreateTrip["🗺️ Create New Trip"]
+    Action --> ViewTrips["📋 View All Trips"]
+    Action --> QuickExp["⚡ Quick Add Expense"]
+    Action --> Analytics["📈 View Analytics"]
+    Action --> Settings["⚙️ Settings"]
+    Action --> Convert["💱 Currency Converter"]
+
+    CreateTrip --> TripForm["Fill Trip Details<br/>(Name, Destination, Dates, Purpose)"]
+    TripForm --> SaveTrip["POST /api/trips"]
+    SaveTrip --> TripDetail["📄 Trip Detail Page"]
+
+    ViewTrips --> TripList["Browse & Filter Trips"]
+    TripList --> TripDetail
+
+    TripDetail --> TripActions{Trip Actions}
+    TripActions --> AddExpense["💰 Add Expense<br/>(Amount, Category, Merchant)"]
+    TripActions --> SetBudget["📊 Set Budget<br/>(Total, Daily Limit, Categories)"]
+    TripActions --> PlanItinerary["📅 Plan Itinerary<br/>(Activities, Times, Locations)"]
+    TripActions --> ExportPDF["📄 Export PDF Report"]
+
+    AddExpense --> SaveExpense["POST /api/expenses"]
+    SaveExpense --> TripDetail
+
+    SetBudget --> SaveBudget["POST /api/trips/[id]/budget"]
+    SaveBudget --> TripDetail
+
+    PlanItinerary --> SaveItinerary["POST /api/trips/[id]/itinerary"]
+    SaveItinerary --> TripDetail
+
+    ExportPDF --> GeneratePDF["Generate PDF with jsPDF"]
+    GeneratePDF --> Download["⬇️ Download Report"]
+
+    QuickExp --> QuickForm["Floating Modal<br/>(Select Trip, Amount, Category)"]
+    QuickForm --> SaveExpense
+
+    Analytics --> Charts["View Charts<br/>(Pie, Bar, Area, Rankings)"]
+
+    Settings --> SettingsActions{Settings Actions}
+    SettingsActions --> Profile["Update Profile & Currency"]
+    SettingsActions --> ExportData["Export All Data<br/>(CSV / JSON)"]
+
+    style Start fill:#4f46e5,color:#fff
+    style Dashboard fill:#eef2ff,stroke:#4f46e5
+    style LoginPage fill:#fef2f2,stroke:#ef4444
+    style TripDetail fill:#f0fdf4,stroke:#16a34a
+    style Analytics fill:#fdf2f8,stroke:#db2777
+    style Download fill:#fef3c7,stroke:#d97706
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
