@@ -13,6 +13,7 @@
   <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" alt="Next.js"/>
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"/>
   <img src="https://img.shields.io/badge/Prisma-7-2D3748?style=flat-square&logo=prisma" alt="Prisma"/>
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License"/>
 </p>
 
 <p align="center">
@@ -37,6 +38,8 @@
 | 📦 **CSV & JSON Export** | Download your data for backup or import into other tools |
 | 🔐 **Authentication** | Secure login/register with hashed passwords and JWT sessions |
 
+
+
 ---
 
 ## 🛠️ Tech Stack
@@ -60,36 +63,36 @@
 
 ```mermaid
 graph TB
-    subgraph Client["🖥️ Client Layer"]
-        Browser["Browser"]
-        Pages["Next.js Pages<br/>(React Server Components)"]
-        Components["Shared Components<br/>(CurrencyConverter, QuickExpense)"]
+    subgraph Client["🖥️ CLIENT LAYER"]
+        Browser["🌐 Browser"]
+        Pages["📄 Next.js Pages"]
+        Components["🧩 Shared Components"]
     end
 
-    subgraph AppRouter["⚡ Next.js App Router"]
-        AuthGroup["(auth) Route Group<br/>Login / Register"]
-        DashGroup["(dashboard) Route Group<br/>Dashboard / Trips / Expenses<br/>Analytics / Settings"]
-        Middleware["Session Middleware<br/>(NextAuth JWT)"]
+    subgraph AppRouter["⚡ NEXT.JS APP ROUTER"]
+        AuthGroup["🔐 Auth Routes"]
+        DashGroup["📊 Dashboard Routes"]
+        Middleware["🛡️ Session Middleware"]
     end
 
-    subgraph API["📡 REST API Layer"]
-        AuthAPI["Auth API<br/>POST /api/auth/register<br/>POST /api/auth/[...nextauth]"]
-        TripsAPI["Trips API<br/>GET/POST /api/trips<br/>GET/PUT/DELETE /api/trips/[id]<br/>POST /api/trips/[id]/budget<br/>GET/POST /api/trips/[id]/itinerary"]
-        ExpensesAPI["Expenses API<br/>GET/POST /api/expenses<br/>DELETE /api/expenses/[id]"]
+    subgraph API["📡 REST API LAYER"]
+        AuthAPI["👤 Auth API"]
+        TripsAPI["✈️ Trips API"]
+        ExpensesAPI["💰 Expenses API"]
     end
 
-    subgraph Services["🔧 Service Layer (lib/)"]
-        AuthLib["auth.ts<br/>NextAuth Config"]
-        Validation["validations.ts<br/>Zod Schemas"]
-        Currency["currency.ts<br/>Exchange Rates"]
-        PDFExport["pdf-export.ts<br/>Report Generation"]
-        DataExport["data-export.ts<br/>CSV & JSON Export"]
-        Utils["utils.ts<br/>Formatters & Constants"]
+    subgraph Services["🔧 SERVICE LAYER"]
+        AuthLib["🔑 Auth Config"]
+        Validation["✅ Zod Validation"]
+        Currency["💱 Exchange Rates"]
+        PDFExport["📄 PDF Reports"]
+        DataExport["📦 CSV / JSON Export"]
+        Utils["🛠️ Utilities"]
     end
 
-    subgraph Data["🗄️ Data Layer"]
-        PrismaClient["Prisma ORM Client"]
-        SQLite["SQLite / Turso<br/>(LibSQL)"]
+    subgraph Data["🗄️ DATA LAYER"]
+        PrismaClient["⚙️ Prisma ORM"]
+        SQLite["🗃️ SQLite / Turso"]
     end
 
     Browser --> Pages
@@ -113,11 +116,11 @@ graph TB
     DashGroup --> Utils
     PrismaClient --> SQLite
 
-    style Client fill:#eef2ff,stroke:#4f46e5
-    style AppRouter fill:#f0fdf4,stroke:#16a34a
-    style API fill:#fef3c7,stroke:#d97706
-    style Services fill:#fdf2f8,stroke:#db2777
-    style Data fill:#f1f5f9,stroke:#475569
+    style Client fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b
+    style AppRouter fill:#f0fdf4,stroke:#16a34a,color:#14532d
+    style API fill:#fef3c7,stroke:#d97706,color:#78350f
+    style Services fill:#fdf2f8,stroke:#db2777,color:#831843
+    style Data fill:#f1f5f9,stroke:#475569,color:#0f172a
 ```
 
 ### Data Model Relationships
@@ -193,64 +196,67 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    Start([User Opens App]) --> AuthCheck{Authenticated?}
+    Start(["🚀 User Opens App"]) --> AuthCheck{"🔒 Authenticated?"}
 
-    AuthCheck -- No --> LoginPage["🔐 Login / Register Page"]
-    LoginPage --> Credentials["Enter Email & Password"]
-    Credentials --> AuthAPI["NextAuth API<br/>Validate & Issue JWT"]
-    AuthAPI --> AuthCheck
+    AuthCheck -- No --> LoginPage["🔐 Login / Register"]
+    LoginPage --> Credentials["📝 Enter Credentials"]
+    Credentials --> AuthValidate["✅ Validate & Issue JWT"]
+    AuthValidate --> AuthCheck
 
     AuthCheck -- Yes --> Dashboard["📊 Dashboard"]
 
-    Dashboard --> Action{User Action}
+    Dashboard --> Action{"🎯 User Action"}
 
-    Action --> CreateTrip["🗺️ Create New Trip"]
-    Action --> ViewTrips["📋 View All Trips"]
-    Action --> QuickExp["⚡ Quick Add Expense"]
-    Action --> Analytics["📈 View Analytics"]
+    Action --> CreateTrip["🗺️ Create Trip"]
+    Action --> ViewTrips["📋 View Trips"]
+    Action --> QuickExp["⚡ Quick Expense"]
+    Action --> Analytics["📈 Analytics"]
     Action --> Settings["⚙️ Settings"]
-    Action --> Convert["💱 Currency Converter"]
+    Action --> Convert["💱 Convert Currency"]
 
-    CreateTrip --> TripForm["Fill Trip Details<br/>(Name, Destination, Dates, Purpose)"]
-    TripForm --> SaveTrip["POST /api/trips"]
-    SaveTrip --> TripDetail["📄 Trip Detail Page"]
+    CreateTrip --> TripForm["📝 Trip Details Form"]
+    TripForm --> SaveTrip["💾 Save Trip"]
+    SaveTrip --> TripDetail["📄 Trip Detail"]
 
-    ViewTrips --> TripList["Browse & Filter Trips"]
+    ViewTrips --> TripList["🔍 Browse & Filter"]
     TripList --> TripDetail
 
-    TripDetail --> TripActions{Trip Actions}
-    TripActions --> AddExpense["💰 Add Expense<br/>(Amount, Category, Merchant)"]
-    TripActions --> SetBudget["📊 Set Budget<br/>(Total, Daily Limit, Categories)"]
-    TripActions --> PlanItinerary["📅 Plan Itinerary<br/>(Activities, Times, Locations)"]
-    TripActions --> ExportPDF["📄 Export PDF Report"]
+    TripDetail --> TripActions{"⚡ Trip Actions"}
+    TripActions --> AddExpense["💰 Add Expense"]
+    TripActions --> SetBudget["📊 Set Budget"]
+    TripActions --> PlanItinerary["📅 Plan Itinerary"]
+    TripActions --> ExportPDF["📄 Export PDF"]
 
-    AddExpense --> SaveExpense["POST /api/expenses"]
+    AddExpense --> SaveExpense["💾 Save Expense"]
     SaveExpense --> TripDetail
 
-    SetBudget --> SaveBudget["POST /api/trips/[id]/budget"]
+    SetBudget --> SaveBudget["💾 Save Budget"]
     SaveBudget --> TripDetail
 
-    PlanItinerary --> SaveItinerary["POST /api/trips/[id]/itinerary"]
+    PlanItinerary --> SaveItinerary["💾 Save Itinerary"]
     SaveItinerary --> TripDetail
 
-    ExportPDF --> GeneratePDF["Generate PDF with jsPDF"]
-    GeneratePDF --> Download["⬇️ Download Report"]
+    ExportPDF --> GeneratePDF["⚙️ Generate PDF"]
+    GeneratePDF --> Download["⬇️ Download"]
 
-    QuickExp --> QuickForm["Floating Modal<br/>(Select Trip, Amount, Category)"]
+    QuickExp --> QuickForm["📝 Quick Entry Modal"]
     QuickForm --> SaveExpense
 
-    Analytics --> Charts["View Charts<br/>(Pie, Bar, Area, Rankings)"]
+    Analytics --> Charts["📊 Interactive Charts"]
 
-    Settings --> SettingsActions{Settings Actions}
-    SettingsActions --> Profile["Update Profile & Currency"]
-    SettingsActions --> ExportData["Export All Data<br/>(CSV / JSON)"]
+    Settings --> SettingsActions{"⚙️ Settings"}
+    SettingsActions --> Profile["👤 Update Profile"]
+    SettingsActions --> ExportData["📦 Export Data"]
 
-    style Start fill:#4f46e5,color:#fff
-    style Dashboard fill:#eef2ff,stroke:#4f46e5
-    style LoginPage fill:#fef2f2,stroke:#ef4444
-    style TripDetail fill:#f0fdf4,stroke:#16a34a
-    style Analytics fill:#fdf2f8,stroke:#db2777
-    style Download fill:#fef3c7,stroke:#d97706
+    style Start fill:#4f46e5,color:#ffffff
+    style Dashboard fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b
+    style LoginPage fill:#fef2f2,stroke:#ef4444,color:#7f1d1d
+    style TripDetail fill:#f0fdf4,stroke:#16a34a,color:#14532d
+    style Analytics fill:#fdf2f8,stroke:#db2777,color:#831843
+    style Download fill:#fef3c7,stroke:#d97706,color:#78350f
+    style Action fill:#f5f3ff,stroke:#7c3aed,color:#4c1d95
+    style TripActions fill:#f0fdf4,stroke:#16a34a,color:#14532d
+    style AuthCheck fill:#fef2f2,stroke:#ef4444,color:#7f1d1d
 ```
 
 ---
