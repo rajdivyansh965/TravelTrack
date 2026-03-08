@@ -41,23 +41,47 @@
 
 ## 🖼️ Screenshots
 
-<details>
-<summary>Click to expand screenshots</summary>
-<br>
+### 🔐 Login
+> Clean, minimal authentication page with soft gradient background
 
-> **Login** — Clean, minimal authentication page with soft gradient background
+<p align="center">
+  <img src="traveltrack/public/screenshots/login.png" width="800" alt="Login Page"/>
+</p>
 
-> **Dashboard** — Travel overview with stats, smart insights, currency converter, and quick actions
+### 📊 Dashboard
+> Travel overview with stats, smart insights, currency converter, and quick actions
 
-> **Trips** — Grid view with search, status filters, budget progress bars
+<p align="center">
+  <img src="traveltrack/public/screenshots/dashboard.png" width="800" alt="Dashboard"/>
+</p>
 
-> **Trip Detail** — Tabbed view (Overview, Expenses, Itinerary, Budget) with PDF export
+### 🗺️ Trips
+> Grid view with search, status filters, and budget progress bars
 
-> **Analytics** — Pie charts, bar charts, area trends, and top merchant rankings
+<p align="center">
+  <img src="traveltrack/public/screenshots/trips.png" width="800" alt="Trips Page"/>
+</p>
 
-> **Settings** — Profile, currency, notifications, and data export options
+### 💰 Expenses
+> Full expense list with category icons, multi-currency, and PDF export
 
-</details>
+<p align="center">
+  <img src="traveltrack/public/screenshots/expenses.png" width="800" alt="Expenses Page"/>
+</p>
+
+### 📈 Analytics
+> Pie charts, bar charts, area trends, and spending breakdowns
+
+<p align="center">
+  <img src="traveltrack/public/screenshots/analytics.png" width="800" alt="Analytics Page"/>
+</p>
+
+### ⚙️ Settings
+> Profile, currency, notifications, and data export options
+
+<p align="center">
+  <img src="traveltrack/public/screenshots/settings.png" width="800" alt="Settings Page"/>
+</p>
 
 ---
 
@@ -68,12 +92,13 @@
 | **Framework** | [Next.js 16](https://nextjs.org/) (App Router + Turbopack) |
 | **Language** | TypeScript 5 |
 | **Styling** | Tailwind CSS 4 |
-| **Database** | SQLite via [Prisma 7](https://www.prisma.io/) + better-sqlite3 |
+| **Database** | SQLite via [Prisma 7](https://www.prisma.io/) + LibSQL ([Turso](https://turso.tech/)-compatible) |
 | **Auth** | [NextAuth.js](https://next-auth.js.org/) v4 (Credentials + JWT) |
 | **Charts** | [Recharts](https://recharts.org/) |
 | **PDF** | [jsPDF](https://github.com/parallax/jsPDF) + jspdf-autotable |
 | **Forms** | React Hook Form + Zod validation |
 | **Icons** | [Lucide React](https://lucide.dev/) |
+| **Fonts** | [Inter](https://fonts.google.com/specimen/Inter) via `next/font/google` |
 
 ---
 
@@ -110,7 +135,7 @@ graph TB
 
     subgraph Data["🗄️ Data Layer"]
         PrismaClient["Prisma ORM Client"]
-        SQLite["SQLite Database<br/>(dev.db)"]
+        SQLite["SQLite / Turso<br/>(LibSQL)"]
     end
 
     Browser --> Pages
@@ -283,12 +308,12 @@ flowchart TD
 - **Node.js** ≥ 18
 - **npm** ≥ 9
 
-### Installation
+### Local Development
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/traveltrack.git
-cd traveltrack
+git clone https://github.com/rajdivyansh965/TravelTrack.git
+cd TravelTrack/traveltrack
 
 # Install dependencies
 npm install
@@ -320,10 +345,46 @@ Open **http://localhost:3000** and sign in with the demo account:
 Create a `.env` file in the root directory:
 
 ```env
+# Local development (SQLite file)
 DATABASE_URL="file:./dev.db"
 NEXTAUTH_SECRET="your-secret-key-here"
 NEXTAUTH_URL="http://localhost:3000"
+
+# Production / Vercel (Turso cloud database)
+# TURSO_DATABASE_URL="libsql://your-db-name.turso.io"
+# TURSO_AUTH_TOKEN="your-turso-auth-token"
 ```
+
+### Deploy to Vercel
+
+This project uses **[Turso](https://turso.tech/)** (LibSQL) for production — a cloud-hosted SQLite-compatible database.
+
+```bash
+# 1. Install Turso CLI & create a database
+brew install tursodatabase/tap/turso
+turso auth login
+turso db create traveltrack
+
+# 2. Get your credentials
+turso db show traveltrack --url       # Copy the URL
+turso db tokens create traveltrack    # Copy the token
+
+# 3. Push schema to Turso
+export TURSO_DATABASE_URL="libsql://..."
+export TURSO_AUTH_TOKEN="..."
+npx prisma db push
+
+# 4. Set env vars in Vercel Dashboard → Settings → Environment Variables
+# Then deploy via git push
+```
+
+| Variable | Value |
+|---|---|
+| `TURSO_DATABASE_URL` | `libsql://traveltrack-your-username.turso.io` |
+| `TURSO_AUTH_TOKEN` | Your Turso auth token |
+| `DATABASE_URL` | Same as `TURSO_DATABASE_URL` |
+| `NEXTAUTH_SECRET` | A strong random key (`openssl rand -base64 32`) |
+| `NEXTAUTH_URL` | `https://your-app.vercel.app` |
 
 ---
 
@@ -332,25 +393,31 @@ NEXTAUTH_URL="http://localhost:3000"
 ```
 traveltrack/
 ├── prisma/
-│   ├── schema.prisma        # Database schema
-│   └── seed.ts               # Demo data seeder
+│   ├── schema.prisma        # Database schema (SQLite)
+│   └── seed.ts              # Demo data seeder
+├── prisma.config.ts         # Prisma config (Turso URL)
+├── public/
+│   └── screenshots/         # App screenshots for README
 ├── src/
 │   ├── app/
-│   │   ├── (auth)/            # Login & Register pages
-│   │   ├── (dashboard)/       # Dashboard, Trips, Expenses, Analytics, Settings
-│   │   └── api/               # REST API routes
-│   ├── components/            # Reusable UI components
+│   │   ├── (auth)/           # Login & Register pages
+│   │   ├── (dashboard)/      # Dashboard, Trips, Expenses, Analytics, Settings
+│   │   └── api/              # REST API routes
+│   ├── components/           # Reusable UI components
 │   │   ├── CurrencyConverter.tsx
-│   │   └── QuickExpense.tsx
-│   └── lib/
-│       ├── utils.ts           # Formatting & constants
-│       ├── currency.ts        # Currency data & rates
-│       ├── pdf-export.ts      # PDF report generation
-│       ├── data-export.ts     # CSV & JSON export
-│       ├── validations.ts     # Zod schemas
-│       ├── prisma.ts          # Database client
-│       └── auth.ts            # NextAuth configuration
-├── .env                       # Environment variables
+│   │   ├── QuickExpense.tsx
+│   │   └── providers.tsx
+│   ├── lib/
+│   │   ├── auth.ts           # NextAuth configuration
+│   │   ├── currency.ts       # Currency data & rates
+│   │   ├── data-export.ts    # CSV & JSON export
+│   │   ├── pdf-export.ts     # PDF report generation
+│   │   ├── prisma.ts         # Database client (LibSQL adapter)
+│   │   ├── utils.ts          # Formatting & constants
+│   │   └── validations.ts    # Zod schemas
+│   └── types/
+│       └── next-auth.d.ts    # Session type augmentation
+├── .env                      # Environment variables
 ├── package.json
 └── tsconfig.json
 ```
@@ -396,6 +463,12 @@ TravelTrack follows a **minimalistic design** approach:
 - 📐 Generous whitespace and clean typography (Inter)
 - 🎭 Subtle fade/slide-in animations for polish
 - 📱 Fully responsive — sidebar (desktop) + bottom tabs (mobile)
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
