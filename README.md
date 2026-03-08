@@ -39,52 +39,6 @@
 
 ---
 
-## 🖼️ Screenshots
-
-### 🔐 Login
-> Clean, minimal authentication page with soft gradient background
-
-<p align="center">
-  <img src="traveltrack/public/screenshots/login.png" width="800" alt="Login Page"/>
-</p>
-
-### 📊 Dashboard
-> Travel overview with stats, smart insights, currency converter, and quick actions
-
-<p align="center">
-  <img src="traveltrack/public/screenshots/dashboard.png" width="800" alt="Dashboard"/>
-</p>
-
-### 🗺️ Trips
-> Grid view with search, status filters, and budget progress bars
-
-<p align="center">
-  <img src="traveltrack/public/screenshots/trips.png" width="800" alt="Trips Page"/>
-</p>
-
-### 💰 Expenses
-> Full expense list with category icons, multi-currency, and PDF export
-
-<p align="center">
-  <img src="traveltrack/public/screenshots/expenses.png" width="800" alt="Expenses Page"/>
-</p>
-
-### 📈 Analytics
-> Pie charts, bar charts, area trends, and spending breakdowns
-
-<p align="center">
-  <img src="traveltrack/public/screenshots/analytics.png" width="800" alt="Analytics Page"/>
-</p>
-
-### ⚙️ Settings
-> Profile, currency, notifications, and data export options
-
-<p align="center">
-  <img src="traveltrack/public/screenshots/settings.png" width="800" alt="Settings Page"/>
-</p>
-
----
-
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
