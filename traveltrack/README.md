@@ -42,23 +42,47 @@
 
 ## 🖼️ Screenshots
 
-<details>
-<summary>Click to expand screenshots</summary>
-<br>
+### 🔐 Login
+> Clean, minimal authentication page with soft gradient background
 
-> **Login** — Clean, minimal authentication page with soft gradient background
+<p align="center">
+  <img src="public/screenshots/login.png" width="800" alt="Login Page"/>
+</p>
 
-> **Dashboard** — Travel overview with stats, smart insights, currency converter, and quick actions
+### 📊 Dashboard
+> Travel overview with stats, smart insights, currency converter, and quick actions
 
-> **Trips** — Grid view with search, status filters, budget progress bars
+<p align="center">
+  <img src="public/screenshots/dashboard.png" width="800" alt="Dashboard"/>
+</p>
 
-> **Trip Detail** — Tabbed view (Overview, Expenses, Itinerary, Budget) with PDF export
+### 🗺️ Trips
+> Grid view with search, status filters, and budget progress bars
 
-> **Analytics** — Pie charts, bar charts, area trends, and top merchant rankings
+<p align="center">
+  <img src="public/screenshots/trips.png" width="800" alt="Trips Page"/>
+</p>
 
-> **Settings** — Profile, currency, notifications, and data export options
+### 💰 Expenses
+> Full expense list with category icons, multi-currency, and PDF export
 
-</details>
+<p align="center">
+  <img src="public/screenshots/expenses.png" width="800" alt="Expenses Page"/>
+</p>
+
+### 📈 Analytics
+> Pie charts, bar charts, area trends, and spending breakdowns
+
+<p align="center">
+  <img src="public/screenshots/analytics.png" width="800" alt="Analytics Page"/>
+</p>
+
+### ⚙️ Settings
+> Profile, currency, notifications, and data export options
+
+<p align="center">
+  <img src="public/screenshots/settings.png" width="800" alt="Settings Page"/>
+</p>
 
 ---
 
@@ -69,12 +93,13 @@
 | **Framework** | [Next.js 16](https://nextjs.org/) (App Router + Turbopack) |
 | **Language** | TypeScript 5 |
 | **Styling** | Tailwind CSS 4 |
-| **Database** | SQLite via [Prisma 7](https://www.prisma.io/) + better-sqlite3 |
+| **Database** | [MongoDB Atlas](https://www.mongodb.com/atlas) via [Prisma 6](https://www.prisma.io/) |
 | **Auth** | [NextAuth.js](https://next-auth.js.org/) v4 (Credentials + JWT) |
 | **Charts** | [Recharts](https://recharts.org/) |
 | **PDF** | [jsPDF](https://github.com/parallax/jsPDF) + jspdf-autotable |
 | **Forms** | React Hook Form + Zod validation |
 | **Icons** | [Lucide React](https://lucide.dev/) |
+| **Fonts** | [Inter](https://fonts.google.com/specimen/Inter) via `next/font/google` |
 
 ---
 
@@ -82,36 +107,36 @@
 
 ```mermaid
 graph TB
-    subgraph Client["🖥️ Client Layer"]
-        Browser["Browser"]
-        Pages["Next.js Pages<br/>(React Server Components)"]
-        Components["Shared Components<br/>(CurrencyConverter, QuickExpense)"]
+    subgraph Client["🖥️ CLIENT LAYER"]
+        Browser["🌐 Browser"]
+        Pages["📄 Next.js Pages"]
+        Components["🧩 Shared Components"]
     end
 
-    subgraph AppRouter["⚡ Next.js App Router"]
-        AuthGroup["(auth) Route Group<br/>Login / Register"]
-        DashGroup["(dashboard) Route Group<br/>Dashboard / Trips / Expenses<br/>Analytics / Settings"]
-        Middleware["Session Middleware<br/>(NextAuth JWT)"]
+    subgraph AppRouter["⚡ NEXT.JS APP ROUTER"]
+        AuthGroup["🔐 Auth Routes"]
+        DashGroup["📊 Dashboard Routes"]
+        Middleware["🛡️ Session Middleware"]
     end
 
-    subgraph API["📡 REST API Layer"]
-        AuthAPI["Auth API<br/>POST /api/auth/register<br/>POST /api/auth/[...nextauth]"]
-        TripsAPI["Trips API<br/>GET/POST /api/trips<br/>GET/PUT/DELETE /api/trips/[id]<br/>POST /api/trips/[id]/budget<br/>GET/POST /api/trips/[id]/itinerary"]
-        ExpensesAPI["Expenses API<br/>GET/POST /api/expenses<br/>DELETE /api/expenses/[id]"]
+    subgraph API["📡 REST API LAYER"]
+        AuthAPI["👤 Auth API"]
+        TripsAPI["✈️ Trips API"]
+        ExpensesAPI["💰 Expenses API"]
     end
 
-    subgraph Services["🔧 Service Layer (lib/)"]
-        AuthLib["auth.ts<br/>NextAuth Config"]
-        Validation["validations.ts<br/>Zod Schemas"]
-        Currency["currency.ts<br/>Exchange Rates"]
-        PDFExport["pdf-export.ts<br/>Report Generation"]
-        DataExport["data-export.ts<br/>CSV & JSON Export"]
-        Utils["utils.ts<br/>Formatters & Constants"]
+    subgraph Services["🔧 SERVICE LAYER"]
+        AuthLib["🔑 Auth Config"]
+        Validation["✅ Zod Validation"]
+        Currency["💱 Exchange Rates"]
+        PDFExport["📄 PDF Reports"]
+        DataExport["📦 CSV / JSON Export"]
+        Utils["🛠️ Utilities"]
     end
 
-    subgraph Data["🗄️ Data Layer"]
-        PrismaClient["Prisma ORM Client"]
-        SQLite["SQLite Database<br/>(dev.db)"]
+    subgraph Data["🗄️ DATA LAYER"]
+        PrismaClient["⚙️ Prisma ORM"]
+        MongoDB["🍃 MongoDB Atlas"]
     end
 
     Browser --> Pages
@@ -133,13 +158,13 @@ graph TB
     DashGroup --> PDFExport
     DashGroup --> DataExport
     DashGroup --> Utils
-    PrismaClient --> SQLite
+    PrismaClient --> MongoDB
 
-    style Client fill:#eef2ff,stroke:#4f46e5
-    style AppRouter fill:#f0fdf4,stroke:#16a34a
-    style API fill:#fef3c7,stroke:#d97706
-    style Services fill:#fdf2f8,stroke:#db2777
-    style Data fill:#f1f5f9,stroke:#475569
+    style Client fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b
+    style AppRouter fill:#f0fdf4,stroke:#16a34a,color:#14532d
+    style API fill:#fef3c7,stroke:#d97706,color:#78350f
+    style Services fill:#fdf2f8,stroke:#db2777,color:#831843
+    style Data fill:#f1f5f9,stroke:#475569,color:#0f172a
 ```
 
 ### Data Model Relationships
@@ -215,64 +240,67 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    Start([User Opens App]) --> AuthCheck{Authenticated?}
+    Start(["🚀 User Opens App"]) --> AuthCheck{"🔒 Authenticated?"}
 
-    AuthCheck -- No --> LoginPage["🔐 Login / Register Page"]
-    LoginPage --> Credentials["Enter Email & Password"]
-    Credentials --> AuthAPI["NextAuth API<br/>Validate & Issue JWT"]
-    AuthAPI --> AuthCheck
+    AuthCheck -- No --> LoginPage["🔐 Login / Register"]
+    LoginPage --> Credentials["📝 Enter Credentials"]
+    Credentials --> AuthValidate["✅ Validate & Issue JWT"]
+    AuthValidate --> AuthCheck
 
     AuthCheck -- Yes --> Dashboard["📊 Dashboard"]
 
-    Dashboard --> Action{User Action}
+    Dashboard --> Action{"🎯 User Action"}
 
-    Action --> CreateTrip["🗺️ Create New Trip"]
-    Action --> ViewTrips["📋 View All Trips"]
-    Action --> QuickExp["⚡ Quick Add Expense"]
-    Action --> Analytics["📈 View Analytics"]
+    Action --> CreateTrip["🗺️ Create Trip"]
+    Action --> ViewTrips["📋 View Trips"]
+    Action --> QuickExp["⚡ Quick Expense"]
+    Action --> Analytics["📈 Analytics"]
     Action --> Settings["⚙️ Settings"]
-    Action --> Convert["💱 Currency Converter"]
+    Action --> Convert["💱 Convert Currency"]
 
-    CreateTrip --> TripForm["Fill Trip Details<br/>(Name, Destination, Dates, Purpose)"]
-    TripForm --> SaveTrip["POST /api/trips"]
-    SaveTrip --> TripDetail["📄 Trip Detail Page"]
+    CreateTrip --> TripForm["📝 Trip Details Form"]
+    TripForm --> SaveTrip["💾 Save Trip"]
+    SaveTrip --> TripDetail["📄 Trip Detail"]
 
-    ViewTrips --> TripList["Browse & Filter Trips"]
+    ViewTrips --> TripList["🔍 Browse & Filter"]
     TripList --> TripDetail
 
-    TripDetail --> TripActions{Trip Actions}
-    TripActions --> AddExpense["💰 Add Expense<br/>(Amount, Category, Merchant)"]
-    TripActions --> SetBudget["📊 Set Budget<br/>(Total, Daily Limit, Categories)"]
-    TripActions --> PlanItinerary["📅 Plan Itinerary<br/>(Activities, Times, Locations)"]
-    TripActions --> ExportPDF["📄 Export PDF Report"]
+    TripDetail --> TripActions{"⚡ Trip Actions"}
+    TripActions --> AddExpense["💰 Add Expense"]
+    TripActions --> SetBudget["📊 Set Budget"]
+    TripActions --> PlanItinerary["📅 Plan Itinerary"]
+    TripActions --> ExportPDF["📄 Export PDF"]
 
-    AddExpense --> SaveExpense["POST /api/expenses"]
+    AddExpense --> SaveExpense["💾 Save Expense"]
     SaveExpense --> TripDetail
 
-    SetBudget --> SaveBudget["POST /api/trips/[id]/budget"]
+    SetBudget --> SaveBudget["💾 Save Budget"]
     SaveBudget --> TripDetail
 
-    PlanItinerary --> SaveItinerary["POST /api/trips/[id]/itinerary"]
+    PlanItinerary --> SaveItinerary["💾 Save Itinerary"]
     SaveItinerary --> TripDetail
 
-    ExportPDF --> GeneratePDF["Generate PDF with jsPDF"]
-    GeneratePDF --> Download["⬇️ Download Report"]
+    ExportPDF --> GeneratePDF["⚙️ Generate PDF"]
+    GeneratePDF --> Download["⬇️ Download"]
 
-    QuickExp --> QuickForm["Floating Modal<br/>(Select Trip, Amount, Category)"]
+    QuickExp --> QuickForm["📝 Quick Entry Modal"]
     QuickForm --> SaveExpense
 
-    Analytics --> Charts["View Charts<br/>(Pie, Bar, Area, Rankings)"]
+    Analytics --> Charts["📊 Interactive Charts"]
 
-    Settings --> SettingsActions{Settings Actions}
-    SettingsActions --> Profile["Update Profile & Currency"]
-    SettingsActions --> ExportData["Export All Data<br/>(CSV / JSON)"]
+    Settings --> SettingsActions{"⚙️ Settings"}
+    SettingsActions --> Profile["👤 Update Profile"]
+    SettingsActions --> ExportData["📦 Export Data"]
 
-    style Start fill:#4f46e5,color:#fff
-    style Dashboard fill:#eef2ff,stroke:#4f46e5
-    style LoginPage fill:#fef2f2,stroke:#ef4444
-    style TripDetail fill:#f0fdf4,stroke:#16a34a
-    style Analytics fill:#fdf2f8,stroke:#db2777
-    style Download fill:#fef3c7,stroke:#d97706
+    style Start fill:#4f46e5,color:#ffffff
+    style Dashboard fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b
+    style LoginPage fill:#fef2f2,stroke:#ef4444,color:#7f1d1d
+    style TripDetail fill:#f0fdf4,stroke:#16a34a,color:#14532d
+    style Analytics fill:#fdf2f8,stroke:#db2777,color:#831843
+    style Download fill:#fef3c7,stroke:#d97706,color:#78350f
+    style Action fill:#f5f3ff,stroke:#7c3aed,color:#4c1d95
+    style TripActions fill:#f0fdf4,stroke:#16a34a,color:#14532d
+    style AuthCheck fill:#fef2f2,stroke:#ef4444,color:#7f1d1d
 ```
 
 ---
@@ -284,12 +312,12 @@ flowchart TD
 - **Node.js** ≥ 18
 - **npm** ≥ 9
 
-### Installation
+### Local Development
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/traveltrack.git
-cd traveltrack
+git clone https://github.com/rajdivyansh965/TravelTrack.git
+cd TravelTrack/traveltrack
 
 # Install dependencies
 npm install
@@ -321,10 +349,46 @@ Open **http://localhost:3000** and sign in with the demo account:
 Create a `.env` file in the root directory:
 
 ```env
+# Local development (SQLite file)
 DATABASE_URL="file:./dev.db"
 NEXTAUTH_SECRET="your-secret-key-here"
 NEXTAUTH_URL="http://localhost:3000"
+
+# Production / Vercel (Turso cloud database)
+# TURSO_DATABASE_URL="libsql://your-db-name.turso.io"
+# TURSO_AUTH_TOKEN="your-turso-auth-token"
 ```
+
+### Deploy to Vercel
+
+This project uses **[Turso](https://turso.tech/)** (LibSQL) for production — a cloud-hosted SQLite-compatible database.
+
+```bash
+# 1. Install Turso CLI & create a database
+brew install tursodatabase/tap/turso
+turso auth login
+turso db create traveltrack
+
+# 2. Get your credentials
+turso db show traveltrack --url       # Copy the URL
+turso db tokens create traveltrack    # Copy the token
+
+# 3. Push schema to Turso
+export TURSO_DATABASE_URL="libsql://..."
+export TURSO_AUTH_TOKEN="..."
+npx prisma db push
+
+# 4. Set env vars in Vercel Dashboard → Settings → Environment Variables
+# Then deploy via git push
+```
+
+| Variable | Value |
+|---|---|
+| `TURSO_DATABASE_URL` | `libsql://traveltrack-your-username.turso.io` |
+| `TURSO_AUTH_TOKEN` | Your Turso auth token |
+| `DATABASE_URL` | Same as `TURSO_DATABASE_URL` |
+| `NEXTAUTH_SECRET` | A strong random key (`openssl rand -base64 32`) |
+| `NEXTAUTH_URL` | `https://your-app.vercel.app` |
 
 ---
 
@@ -333,25 +397,31 @@ NEXTAUTH_URL="http://localhost:3000"
 ```
 traveltrack/
 ├── prisma/
-│   ├── schema.prisma        # Database schema
-│   └── seed.ts               # Demo data seeder
+│   ├── schema.prisma        # Database schema (SQLite)
+│   └── seed.ts              # Demo data seeder
+├── prisma.config.ts         # Prisma config (Turso URL)
+├── public/
+│   └── screenshots/         # App screenshots for README
 ├── src/
 │   ├── app/
-│   │   ├── (auth)/            # Login & Register pages
-│   │   ├── (dashboard)/       # Dashboard, Trips, Expenses, Analytics, Settings
-│   │   └── api/               # REST API routes
-│   ├── components/            # Reusable UI components
+│   │   ├── (auth)/           # Login & Register pages
+│   │   ├── (dashboard)/      # Dashboard, Trips, Expenses, Analytics, Settings
+│   │   └── api/              # REST API routes
+│   ├── components/           # Reusable UI components
 │   │   ├── CurrencyConverter.tsx
-│   │   └── QuickExpense.tsx
-│   └── lib/
-│       ├── utils.ts           # Formatting & constants
-│       ├── currency.ts        # Currency data & rates
-│       ├── pdf-export.ts      # PDF report generation
-│       ├── data-export.ts     # CSV & JSON export
-│       ├── validations.ts     # Zod schemas
-│       ├── prisma.ts          # Database client
-│       └── auth.ts            # NextAuth configuration
-├── .env                       # Environment variables
+│   │   ├── QuickExpense.tsx
+│   │   └── providers.tsx
+│   ├── lib/
+│   │   ├── auth.ts           # NextAuth configuration
+│   │   ├── currency.ts       # Currency data & rates
+│   │   ├── data-export.ts    # CSV & JSON export
+│   │   ├── pdf-export.ts     # PDF report generation
+│   │   ├── prisma.ts         # Database client (LibSQL adapter)
+│   │   ├── utils.ts          # Formatting & constants
+│   │   └── validations.ts    # Zod schemas
+│   └── types/
+│       └── next-auth.d.ts    # Session type augmentation
+├── .env                      # Environment variables
 ├── package.json
 └── tsconfig.json
 ```

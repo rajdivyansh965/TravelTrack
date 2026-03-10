@@ -3,11 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id              String    @id @default(uuid())
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
   email           String    @unique
   name            String
   passwordHash    String
@@ -19,8 +20,8 @@ model User {
 }
 
 model Trip {
-  id          String          @id @default(uuid())
-  userId      String
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String          @db.ObjectId
   name        String
   destination String
   startDate   DateTime
@@ -30,61 +31,61 @@ model Trip {
   notes       String?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id])
   budget      Budget?
   expenses    Expense[]
   itinerary   ItineraryItem[]
 }
 
 model Budget {
-  id          String           @id @default(uuid())
-  tripId      String           @unique
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  tripId      String           @unique @db.ObjectId
   totalBudget Float            @default(0)
   dailyLimit  Float            @default(0)
   currency    String           @default("USD")
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
-  trip        Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  trip        Trip             @relation(fields: [tripId], references: [id])
   categories  CategoryBudget[]
 }
 
 model CategoryBudget {
-  id        String   @id @default(uuid())
-  budgetId  String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  budgetId  String   @db.ObjectId
   category  String
   allocated Float    @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  budget    Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budget    Budget   @relation(fields: [budgetId], references: [id])
 }
 
 model Expense {
-  id            String   @id @default(uuid())
-  tripId        String
-  userId        String
-  date          DateTime
-  merchant      String
-  amount        Float
-  currency      String   @default("USD")
-  category      String
-  paymentMethod String   @default("card")
-  receiptUrl    String?
-  notes         String?
-  tags          String   @default("[]")
-  locationLat   Float?
-  locationLng   Float?
-  locationAddr  String?
-  businessExpense Boolean @default(false)
-  reimbursable  Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  trip          Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  tripId          String   @db.ObjectId
+  userId          String   @db.ObjectId
+  date            DateTime
+  merchant        String
+  amount          Float
+  currency        String   @default("USD")
+  category        String
+  paymentMethod   String   @default("card")
+  receiptUrl      String?
+  notes           String?
+  tags            String   @default("[]")
+  locationLat     Float?
+  locationLng     Float?
+  locationAddr    String?
+  businessExpense Boolean  @default(false)
+  reimbursable    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  trip            Trip     @relation(fields: [tripId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
 }
 
 model ItineraryItem {
-  id            String   @id @default(uuid())
-  tripId        String
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  tripId        String   @db.ObjectId
   date          DateTime
   startTime     String?
   duration      Int      @default(60)
@@ -95,11 +96,11 @@ model ItineraryItem {
   order         Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  trip          Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  trip          Trip     @relation(fields: [tripId], references: [id])
 }
 
 model ExchangeRate {
-  id           String   @id @default(uuid())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   fromCurrency String
   toCurrency   String
   rate         Float

@@ -79,6 +79,16 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
             return NextResponse.json({ error: "Trip not found" }, { status: 404 });
         }
 
+        // MongoDB doesn't support cascade deletes — manually delete related records
+        await prisma.itineraryItem.deleteMany({ where: { tripId: id } });
+        await prisma.expense.deleteMany({ where: { tripId: id } });
+
+        const budget = await prisma.budget.findUnique({ where: { tripId: id } });
+        if (budget) {
+            await prisma.categoryBudget.deleteMany({ where: { budgetId: budget.id } });
+            await prisma.budget.delete({ where: { id: budget.id } });
+        }
+
         await prisma.trip.delete({ where: { id } });
         return NextResponse.json({ success: true });
     } catch (error) {

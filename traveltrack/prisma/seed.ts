@@ -1,19 +1,21 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { hash } from "bcryptjs";
 
-const adapter = new PrismaBetterSqlite3({
-    url: process.env.DATABASE_URL || "file:./prisma/dev.db",
-});
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
+    // Clean up existing data
+    await prisma.itineraryItem.deleteMany();
+    await prisma.categoryBudget.deleteMany();
+    await prisma.budget.deleteMany();
+    await prisma.expense.deleteMany();
+    await prisma.trip.deleteMany();
+    await prisma.user.deleteMany();
+
     // Create demo user
     const passwordHash = await hash("demo1234", 12);
-    const user = await prisma.user.upsert({
-        where: { email: "demo@traveltrack.app" },
-        update: {},
-        create: {
+    const user = await prisma.user.create({
+        data: {
             email: "demo@traveltrack.app",
             name: "Alex Morgan",
             passwordHash,

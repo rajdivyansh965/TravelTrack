@@ -49,7 +49,7 @@
 | **Framework** | [Next.js 16](https://nextjs.org/) (App Router + Turbopack) |
 | **Language** | TypeScript 5 |
 | **Styling** | Tailwind CSS 4 |
-| **Database** | SQLite via [Prisma 7](https://www.prisma.io/) + LibSQL ([Turso](https://turso.tech/)-compatible) |
+| **Database** | [MongoDB Atlas](https://www.mongodb.com/atlas) via [Prisma 6](https://www.prisma.io/) |
 | **Auth** | [NextAuth.js](https://next-auth.js.org/) v4 (Credentials + JWT) |
 | **Charts** | [Recharts](https://recharts.org/) |
 | **PDF** | [jsPDF](https://github.com/parallax/jsPDF) + jspdf-autotable |
@@ -92,7 +92,7 @@ graph TB
 
     subgraph Data["🗄️ DATA LAYER"]
         PrismaClient["⚙️ Prisma ORM"]
-        SQLite["🗃️ SQLite / Turso"]
+        MongoDB["🍃 MongoDB Atlas"]
     end
 
     Browser --> Pages
@@ -114,7 +114,7 @@ graph TB
     DashGroup --> PDFExport
     DashGroup --> DataExport
     DashGroup --> Utils
-    PrismaClient --> SQLite
+    PrismaClient --> MongoDB
 
     style Client fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b
     style AppRouter fill:#f0fdf4,stroke:#16a34a,color:#14532d
@@ -305,44 +305,23 @@ Open **http://localhost:3000** and sign in with the demo account:
 Create a `.env` file in the root directory:
 
 ```env
-# Local development (SQLite file)
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/traveltrack?retryWrites=true&w=majority"
 NEXTAUTH_SECRET="your-secret-key-here"
 NEXTAUTH_URL="http://localhost:3000"
-
-# Production / Vercel (Turso cloud database)
-# TURSO_DATABASE_URL="libsql://your-db-name.turso.io"
-# TURSO_AUTH_TOKEN="your-turso-auth-token"
 ```
 
 ### Deploy to Vercel
 
-This project uses **[Turso](https://turso.tech/)** (LibSQL) for production — a cloud-hosted SQLite-compatible database.
+This project uses **[MongoDB Atlas](https://www.mongodb.com/atlas)** (free tier) for production.
 
-```bash
-# 1. Install Turso CLI & create a database
-brew install tursodatabase/tap/turso
-turso auth login
-turso db create traveltrack
-
-# 2. Get your credentials
-turso db show traveltrack --url       # Copy the URL
-turso db tokens create traveltrack    # Copy the token
-
-# 3. Push schema to Turso
-export TURSO_DATABASE_URL="libsql://..."
-export TURSO_AUTH_TOKEN="..."
-npx prisma db push
-
-# 4. Set env vars in Vercel Dashboard → Settings → Environment Variables
-# Then deploy via git push
-```
+1. Create a free cluster at [mongodb.com/atlas](https://www.mongodb.com/atlas)
+2. Create a database user and allow network access from `0.0.0.0/0`
+3. Get your connection string (Drivers → Node.js)
+4. Set env vars in **Vercel → Settings → Environment Variables**:
 
 | Variable | Value |
 |---|---|
-| `TURSO_DATABASE_URL` | `libsql://traveltrack-your-username.turso.io` |
-| `TURSO_AUTH_TOKEN` | Your Turso auth token |
-| `DATABASE_URL` | Same as `TURSO_DATABASE_URL` |
+| `DATABASE_URL` | `mongodb+srv://user:pass@cluster.mongodb.net/traveltrack` |
 | `NEXTAUTH_SECRET` | A strong random key (`openssl rand -base64 32`) |
 | `NEXTAUTH_URL` | `https://your-app.vercel.app` |
 
@@ -353,9 +332,8 @@ npx prisma db push
 ```
 traveltrack/
 ├── prisma/
-│   ├── schema.prisma        # Database schema (SQLite)
+│   ├── schema.prisma        # Database schema (MongoDB)
 │   └── seed.ts              # Demo data seeder
-├── prisma.config.ts         # Prisma config (Turso URL)
 ├── public/
 │   └── screenshots/         # App screenshots for README
 ├── src/
@@ -372,7 +350,7 @@ traveltrack/
 │   │   ├── currency.ts       # Currency data & rates
 │   │   ├── data-export.ts    # CSV & JSON export
 │   │   ├── pdf-export.ts     # PDF report generation
-│   │   ├── prisma.ts         # Database client (LibSQL adapter)
+│   │   ├── prisma.ts         # Prisma client (MongoDB)
 │   │   ├── utils.ts          # Formatting & constants
 │   │   └── validations.ts    # Zod schemas
 │   └── types/
