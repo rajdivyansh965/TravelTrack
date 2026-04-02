@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import connectDB from "@/lib/db";
+import { Expense, Trip } from "@/lib/models";
 import { expenseSchema } from "@/lib/validations";
 
 export async function GET(req: Request) {
@@ -16,18 +17,29 @@ export async function GET(req: Request) {
         const category = searchParams.get("category");
         const limit = parseInt(searchParams.get("limit") ?? "50");
 
-        const where: Record<string, unknown> = { userId: session.user.id };
-        if (tripId) where.tripId = tripId;
-        if (category) where.category = category;
+        await connectDB();
 
-        const expenses = await prisma.expense.findMany({
-            where,
-            include: { trip: { select: { name: true, destination: true } } },
-            orderBy: { date: "desc" },
-            take: limit,
-        });
+        const filter: Record<string, unknown> = { userId: session.user.id };
+        if (tripId) filter.tripId = tripId;
+        if (category) filter.category = category;
 
-        return NextResponse.json(expenses);
+        const expenses = await Expense.find(filter)
+            .sort({ date: -1 })
+            .limit(limit)
+            .lean();
+
+        // Populate trip name for each expense
+        const tripIds = [...new Set(expenses.map((e) => e.tripId.toString()))];
+        const trips = await Trip.find({ _id: { $in: tripIds } }).select("name destination").lean();
+        const tripMap = new Map(trips.map((t) => [t._id.toString(), { name: t.name, destination: t.destination }]));
+
+        const result = expenses.map((e) => ({
+            ...e,
+            id: e._id.toString(),
+            trip: tripMap.get(e.tripId.toString()) || null,
+        }));
+
+        return NextResponse.json(result);
     } catch (error) {
         console.error("GET /api/expenses error:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -48,24 +60,25 @@ export async function POST(req: Request) {
         }
 
         const data = parsed.data;
-        const expense = await prisma.expense.create({
-            data: {
-                tripId: data.tripId,
-                userId: session.user.id,
-                date: new Date(data.date),
-                merchant: data.merchant,
-                amount: data.amount,
-                currency: data.currency,
-                category: data.category,
-                paymentMethod: data.paymentMethod,
-                notes: data.notes || null,
-                tags: data.tags || "[]",
-                businessExpense: data.businessExpense,
-                reimbursable: data.reimbursable,
-            },
+        await connectDB();
+
+        const expense = await Expense.create({
+            tripId: data.tripId,
+            userId: session.user.id,
+            date: new Date(data.date),
+            merchant: data.merchant,
+            amount: data.amount,
+            currency: data.currency,
+            category: data.category,
+            paymentMethod: data.paymentMethod,
+            notes: data.notes || null,
+            tags: data.tags || "[]",
+            businessExpense: data.businessExpense,
+            reimbursable: data.reimbursable,
         });
 
-        return NextResponse.json(expense, { status: 201 });
+        const result = expense.toObject();
+        return NextResponse.json({ ...result, id: result._id.toString() }, { status: 201 });
     } catch (error) {
         console.error("POST /api/expenses error:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });

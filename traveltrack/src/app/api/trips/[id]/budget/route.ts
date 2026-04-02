@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import connectDB from "@/lib/db";
+import { Trip, Budget } from "@/lib/models";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -9,12 +10,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const { id: tripId } = await params;
-        const budget = await prisma.budget.findFirst({
-            where: { tripId, trip: { userId: session.user.id } },
-            include: { categories: true },
-        });
+        await connectDB();
 
-        return NextResponse.json(budget);
+        // Verify trip belongs to user
+        const trip = await Trip.findOne({ _id: tripId, userId: session.user.id });
+        if (!trip) return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+
+        const budget = await Budget.findOne({ tripId }).lean();
+        return NextResponse.json(budget ? { ...budget, id: budget._id.toString() } : null);
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -28,49 +31,43 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
         const { id: tripId } = await params;
         const body = await req.json();
+        await connectDB();
 
-        const trip = await prisma.trip.findFirst({ where: { id: tripId, userId: session.user.id } });
+        const trip = await Trip.findOne({ _id: tripId, userId: session.user.id });
         if (!trip) return NextResponse.json({ error: "Trip not found" }, { status: 404 });
 
-        const existing = await prisma.budget.findFirst({ where: { tripId } });
+        const existing = await Budget.findOne({ tripId });
 
         if (existing) {
-            await prisma.categoryBudget.deleteMany({ where: { budgetId: existing.id } });
-            const budget = await prisma.budget.update({
-                where: { id: existing.id },
-                data: {
-                    totalBudget: body.totalBudget ?? existing.totalBudget,
-                    dailyLimit: body.dailyLimit ?? existing.dailyLimit,
-                    currency: body.currency ?? existing.currency,
-                    categories: body.categories ? {
-                        create: body.categories.map((c: { category: string; allocated: number }) => ({
-                            category: c.category,
-                            allocated: c.allocated,
-                        })),
-                    } : undefined,
-                },
-                include: { categories: true },
-            });
-            return NextResponse.json(budget);
+            existing.totalBudget = body.totalBudget ?? existing.totalBudget;
+            existing.dailyLimit = body.dailyLimit ?? existing.dailyLimit;
+            existing.currency = body.currency ?? existing.currency;
+            if (body.categories) {
+                existing.categories = body.categories.map((c: { category: string; allocated: number }) => ({
+                    category: c.category,
+                    allocated: c.allocated,
+                }));
+            }
+            await existing.save();
+            const result = existing.toObject();
+            return NextResponse.json({ ...result, id: result._id.toString() });
         }
 
-        const budget = await prisma.budget.create({
-            data: {
-                tripId,
-                totalBudget: body.totalBudget || 0,
-                dailyLimit: body.dailyLimit || 0,
-                currency: body.currency || "USD",
-                categories: body.categories ? {
-                    create: body.categories.map((c: { category: string; allocated: number }) => ({
-                        category: c.category,
-                        allocated: c.allocated,
-                    })),
-                } : undefined,
-            },
-            include: { categories: true },
+        const budget = await Budget.create({
+            tripId,
+            totalBudget: body.totalBudget || 0,
+            dailyLimit: body.dailyLimit || 0,
+            currency: body.currency || "USD",
+            categories: body.categories
+                ? body.categories.map((c: { category: string; allocated: number }) => ({
+                    category: c.category,
+                    allocated: c.allocated,
+                }))
+                : [],
         });
 
-        return NextResponse.json(budget, { status: 201 });
+        const result = budget.toObject();
+        return NextResponse.json({ ...result, id: result._id.toString() }, { status: 201 });
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });

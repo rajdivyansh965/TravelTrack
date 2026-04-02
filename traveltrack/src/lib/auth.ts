@@ -1,7 +1,8 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
-import { prisma } from "./prisma";
+import connectDB from "./db";
+import { User } from "./models";
 
 export const authOptions: NextAuthOptions = {
     session: {
@@ -23,9 +24,9 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("Email and password required");
                 }
 
-                const user = await prisma.user.findUnique({
-                    where: { email: credentials.email },
-                });
+                await connectDB();
+
+                const user = await User.findOne({ email: credentials.email });
 
                 if (!user) {
                     throw new Error("No user found with this email");
@@ -37,7 +38,7 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 return {
-                    id: user.id,
+                    id: user._id.toString(),
                     email: user.email,
                     name: user.name,
                 };

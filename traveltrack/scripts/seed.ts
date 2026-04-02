@@ -1,59 +1,59 @@
-import { PrismaClient } from "@prisma/client";
+import { loadEnvConfig } from "@next/env";
+loadEnvConfig(process.cwd());
+
+import mongoose from "mongoose";
 import { hash } from "bcryptjs";
 
-const prisma = new PrismaClient();
+const MONGODB_URI = process.env.DATABASE_URL!;
 
-async function main() {
+async function seed() {
+    await mongoose.connect(MONGODB_URI);
+    console.log("Connected to MongoDB");
+
+    // Import models after connection
+    const { User, Trip, Budget, Expense, ItineraryItem } = await import("../src/lib/models");
+
     // Clean up existing data
-    await prisma.itineraryItem.deleteMany();
-    await prisma.categoryBudget.deleteMany();
-    await prisma.budget.deleteMany();
-    await prisma.expense.deleteMany();
-    await prisma.trip.deleteMany();
-    await prisma.user.deleteMany();
+    await ItineraryItem.deleteMany();
+    await Expense.deleteMany();
+    await Budget.deleteMany();
+    await Trip.deleteMany();
+    await User.deleteMany();
 
     // Create demo user
     const passwordHash = await hash("demo1234", 12);
-    const user = await prisma.user.create({
-        data: {
-            email: "demo@traveltrack.app",
-            name: "Alex Morgan",
-            passwordHash,
-            defaultCurrency: "USD",
-        },
+    const user = await User.create({
+        email: "demo@traveltrack.app",
+        name: "Alex Morgan",
+        passwordHash,
+        defaultCurrency: "USD",
     });
 
     // Trip 1: Completed trip to Tokyo
-    const tokyo = await prisma.trip.create({
-        data: {
-            userId: user.id,
-            name: "Tokyo Adventure",
-            destination: "Tokyo, Japan",
-            startDate: new Date("2025-11-01"),
-            endDate: new Date("2025-11-10"),
-            purpose: "leisure",
-            status: "completed",
-            notes: "Amazing 10-day trip exploring Japan's capital",
-        },
+    const tokyo = await Trip.create({
+        userId: user._id,
+        name: "Tokyo Adventure",
+        destination: "Tokyo, Japan",
+        startDate: new Date("2025-11-01"),
+        endDate: new Date("2025-11-10"),
+        purpose: "leisure",
+        status: "completed",
+        notes: "Amazing 10-day trip exploring Japan's capital",
     });
 
-    await prisma.budget.create({
-        data: {
-            tripId: tokyo.id,
-            totalBudget: 3500,
-            dailyLimit: 350,
-            currency: "USD",
-            categories: {
-                create: [
-                    { category: "transport", allocated: 800 },
-                    { category: "accommodation", allocated: 1200 },
-                    { category: "food", allocated: 700 },
-                    { category: "activities", allocated: 500 },
-                    { category: "shopping", allocated: 200 },
-                    { category: "misc", allocated: 100 },
-                ],
-            },
-        },
+    await Budget.create({
+        tripId: tokyo._id,
+        totalBudget: 3500,
+        dailyLimit: 350,
+        currency: "USD",
+        categories: [
+            { category: "transport", allocated: 800 },
+            { category: "accommodation", allocated: 1200 },
+            { category: "food", allocated: 700 },
+            { category: "activities", allocated: 500 },
+            { category: "shopping", allocated: 200 },
+            { category: "misc", allocated: 100 },
+        ],
     });
 
     const tokyoExpenses = [
@@ -74,41 +74,33 @@ async function main() {
     ];
 
     for (const exp of tokyoExpenses) {
-        await prisma.expense.create({
-            data: { ...exp, tripId: tokyo.id, userId: user.id },
-        });
+        await Expense.create({ ...exp, tripId: tokyo._id, userId: user._id });
     }
 
     // Trip 2: Active trip to Paris
-    const paris = await prisma.trip.create({
-        data: {
-            userId: user.id,
-            name: "Paris Business Trip",
-            destination: "Paris, France",
-            startDate: new Date("2026-02-24"),
-            endDate: new Date("2026-03-02"),
-            purpose: "business",
-            status: "active",
-            notes: "Annual tech conference and client meetings",
-        },
+    const paris = await Trip.create({
+        userId: user._id,
+        name: "Paris Business Trip",
+        destination: "Paris, France",
+        startDate: new Date("2026-02-24"),
+        endDate: new Date("2026-03-02"),
+        purpose: "business",
+        status: "active",
+        notes: "Annual tech conference and client meetings",
     });
 
-    await prisma.budget.create({
-        data: {
-            tripId: paris.id,
-            totalBudget: 2800,
-            dailyLimit: 400,
-            currency: "EUR",
-            categories: {
-                create: [
-                    { category: "transport", allocated: 600 },
-                    { category: "accommodation", allocated: 1000 },
-                    { category: "food", allocated: 500 },
-                    { category: "activities", allocated: 300 },
-                    { category: "misc", allocated: 400 },
-                ],
-            },
-        },
+    await Budget.create({
+        tripId: paris._id,
+        totalBudget: 2800,
+        dailyLimit: 400,
+        currency: "EUR",
+        categories: [
+            { category: "transport", allocated: 600 },
+            { category: "accommodation", allocated: 1000 },
+            { category: "food", allocated: 500 },
+            { category: "activities", allocated: 300 },
+            { category: "misc", allocated: 400 },
+        ],
     });
 
     const parisExpenses = [
@@ -120,9 +112,7 @@ async function main() {
     ];
 
     for (const exp of parisExpenses) {
-        await prisma.expense.create({
-            data: { ...exp, tripId: paris.id, userId: user.id, businessExpense: exp.businessExpense ?? false },
-        });
+        await Expense.create({ ...exp, tripId: paris._id, userId: user._id, businessExpense: exp.businessExpense ?? false });
     }
 
     // Itinerary for Paris
@@ -138,53 +128,43 @@ async function main() {
     ];
 
     for (const item of parisItinerary) {
-        await prisma.itineraryItem.create({
-            data: { ...item, tripId: paris.id },
-        });
+        await ItineraryItem.create({ ...item, tripId: paris._id });
     }
 
     // Trip 3: Upcoming trip to Bali
-    const bali = await prisma.trip.create({
-        data: {
-            userId: user.id,
-            name: "Bali Getaway",
-            destination: "Bali, Indonesia",
-            startDate: new Date("2026-04-15"),
-            endDate: new Date("2026-04-25"),
-            purpose: "leisure",
-            status: "planning",
-            notes: "Relaxation and surfing retreat",
-        },
+    const bali = await Trip.create({
+        userId: user._id,
+        name: "Bali Getaway",
+        destination: "Bali, Indonesia",
+        startDate: new Date("2026-04-15"),
+        endDate: new Date("2026-04-25"),
+        purpose: "leisure",
+        status: "planning",
+        notes: "Relaxation and surfing retreat",
     });
 
-    await prisma.budget.create({
-        data: {
-            tripId: bali.id,
-            totalBudget: 2000,
-            dailyLimit: 180,
-            currency: "USD",
-            categories: {
-                create: [
-                    { category: "transport", allocated: 500 },
-                    { category: "accommodation", allocated: 600 },
-                    { category: "food", allocated: 400 },
-                    { category: "activities", allocated: 350 },
-                    { category: "misc", allocated: 150 },
-                ],
-            },
-        },
+    await Budget.create({
+        tripId: bali._id,
+        totalBudget: 2000,
+        dailyLimit: 180,
+        currency: "USD",
+        categories: [
+            { category: "transport", allocated: 500 },
+            { category: "accommodation", allocated: 600 },
+            { category: "food", allocated: 400 },
+            { category: "activities", allocated: 350 },
+            { category: "misc", allocated: 150 },
+        ],
     });
 
     console.log("✅ Seed data created successfully!");
     console.log(`   Demo user: demo@traveltrack.app / demo1234`);
     console.log(`   Trips: ${tokyo.name}, ${paris.name}, ${bali.name}`);
+
+    await mongoose.disconnect();
 }
 
-main()
-    .catch((e) => {
-        console.error(e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+seed().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});
