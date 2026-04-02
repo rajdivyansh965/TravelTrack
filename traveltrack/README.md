@@ -12,7 +12,7 @@
   <a href="#features"><img src="https://img.shields.io/badge/Features-5%2B-4f46e5?style=flat-square" alt="Features"/></a>
   <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" alt="Next.js"/>
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"/>
-  <img src="https://img.shields.io/badge/Prisma-7-2D3748?style=flat-square&logo=prisma" alt="Prisma"/>
+  <img src="https://img.shields.io/badge/Mongoose-8-880000?style=flat-square&logo=mongodb" alt="Mongoose"/>
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License"/>
 </p>
 
@@ -93,7 +93,7 @@
 | **Framework** | [Next.js 16](https://nextjs.org/) (App Router + Turbopack) |
 | **Language** | TypeScript 5 |
 | **Styling** | Tailwind CSS 4 |
-| **Database** | [MongoDB Atlas](https://www.mongodb.com/atlas) via [Prisma 6](https://www.prisma.io/) |
+| **Database** | [MongoDB Atlas](https://www.mongodb.com/atlas) via [Mongoose 8](https://mongoosejs.com/) |
 | **Auth** | [NextAuth.js](https://next-auth.js.org/) v4 (Credentials + JWT) |
 | **Charts** | [Recharts](https://recharts.org/) |
 | **PDF** | [jsPDF](https://github.com/parallax/jsPDF) + jspdf-autotable |
@@ -135,7 +135,7 @@ graph TB
     end
 
     subgraph Data["🗄️ DATA LAYER"]
-        PrismaClient["⚙️ Prisma ORM"]
+        MongooseODM["🍃 Mongoose ODM"]
         MongoDB["🍃 MongoDB Atlas"]
     end
 
@@ -151,14 +151,14 @@ graph TB
     AuthAPI --> AuthLib
     TripsAPI --> Validation
     ExpensesAPI --> Validation
-    TripsAPI --> PrismaClient
-    ExpensesAPI --> PrismaClient
-    AuthAPI --> PrismaClient
+    TripsAPI --> MongooseODM
+    ExpensesAPI --> MongooseODM
+    AuthAPI --> MongooseODM
     DashGroup --> Currency
     DashGroup --> PDFExport
     DashGroup --> DataExport
     DashGroup --> Utils
-    PrismaClient --> MongoDB
+    MongooseODM --> MongoDB
 
     style Client fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b
     style AppRouter fill:#f0fdf4,stroke:#16a34a,color:#14532d
@@ -179,15 +179,15 @@ erDiagram
     Budget ||--o{ CategoryBudget : allocates
 
     User {
-        string id PK
+        ObjectId _id PK
         string email UK
         string name
         string passwordHash
         string defaultCurrency
     }
     Trip {
-        string id PK
-        string userId FK
+        ObjectId _id PK
+        ObjectId userId FK
         string name
         string destination
         datetime startDate
@@ -196,9 +196,9 @@ erDiagram
         string status
     }
     Expense {
-        string id PK
-        string tripId FK
-        string userId FK
+        ObjectId _id PK
+        ObjectId tripId FK
+        ObjectId userId FK
         float amount
         string currency
         string category
@@ -206,28 +206,27 @@ erDiagram
         string paymentMethod
     }
     Budget {
-        string id PK
-        string tripId FK
+        ObjectId _id PK
+        ObjectId tripId FK
         float totalBudget
         float dailyLimit
         string currency
     }
     CategoryBudget {
-        string id PK
-        string budgetId FK
+        ObjectId _id PK
         string category
         float allocated
     }
     ItineraryItem {
-        string id PK
-        string tripId FK
+        ObjectId _id PK
+        ObjectId tripId FK
         string title
         string location
         float estimatedCost
         int duration
     }
     ExchangeRate {
-        string id PK
+        ObjectId _id PK
         string fromCurrency
         string toCurrency
         float rate
@@ -326,12 +325,8 @@ npm install
 cp .env.example .env
 # Edit .env with your values (see Environment Variables below)
 
-# Initialize the database
-npx prisma generate
-npx prisma db push
-
 # Seed demo data
-npx prisma db seed
+npm run seed
 
 # Start the development server
 npm run dev
@@ -349,44 +344,23 @@ Open **http://localhost:3000** and sign in with the demo account:
 Create a `.env` file in the root directory:
 
 ```env
-# Local development (SQLite file)
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/traveltrack?retryWrites=true&w=majority"
 NEXTAUTH_SECRET="your-secret-key-here"
 NEXTAUTH_URL="http://localhost:3000"
-
-# Production / Vercel (Turso cloud database)
-# TURSO_DATABASE_URL="libsql://your-db-name.turso.io"
-# TURSO_AUTH_TOKEN="your-turso-auth-token"
 ```
 
 ### Deploy to Vercel
 
-This project uses **[Turso](https://turso.tech/)** (LibSQL) for production — a cloud-hosted SQLite-compatible database.
+This project uses **[MongoDB Atlas](https://www.mongodb.com/atlas)** (free tier) for production.
 
-```bash
-# 1. Install Turso CLI & create a database
-brew install tursodatabase/tap/turso
-turso auth login
-turso db create traveltrack
-
-# 2. Get your credentials
-turso db show traveltrack --url       # Copy the URL
-turso db tokens create traveltrack    # Copy the token
-
-# 3. Push schema to Turso
-export TURSO_DATABASE_URL="libsql://..."
-export TURSO_AUTH_TOKEN="..."
-npx prisma db push
-
-# 4. Set env vars in Vercel Dashboard → Settings → Environment Variables
-# Then deploy via git push
-```
+1. Create a free cluster at [mongodb.com/atlas](https://www.mongodb.com/atlas)
+2. Create a database user and allow network access from `0.0.0.0/0`
+3. Get your connection string (Drivers → Node.js)
+4. Set env vars in **Vercel → Settings → Environment Variables**:
 
 | Variable | Value |
 |---|---|
-| `TURSO_DATABASE_URL` | `libsql://traveltrack-your-username.turso.io` |
-| `TURSO_AUTH_TOKEN` | Your Turso auth token |
-| `DATABASE_URL` | Same as `TURSO_DATABASE_URL` |
+| `DATABASE_URL` | `mongodb+srv://user:pass@cluster.mongodb.net/traveltrack` |
 | `NEXTAUTH_SECRET` | A strong random key (`openssl rand -base64 32`) |
 | `NEXTAUTH_URL` | `https://your-app.vercel.app` |
 
@@ -396,10 +370,8 @@ npx prisma db push
 
 ```
 traveltrack/
-├── prisma/
-│   ├── schema.prisma        # Database schema (SQLite)
-│   └── seed.ts              # Demo data seeder
-├── prisma.config.ts         # Prisma config (Turso URL)
+├── scripts/
+│   └── seed.ts              # Demo data seeder (Mongoose)
 ├── public/
 │   └── screenshots/         # App screenshots for README
 ├── src/
@@ -408,19 +380,12 @@ traveltrack/
 │   │   ├── (dashboard)/      # Dashboard, Trips, Expenses, Analytics, Settings
 │   │   └── api/              # REST API routes
 │   ├── components/           # Reusable UI components
-│   │   ├── CurrencyConverter.tsx
-│   │   ├── QuickExpense.tsx
-│   │   └── providers.tsx
 │   ├── lib/
 │   │   ├── auth.ts           # NextAuth configuration
-│   │   ├── currency.ts       # Currency data & rates
-│   │   ├── data-export.ts    # CSV & JSON export
-│   │   ├── pdf-export.ts     # PDF report generation
-│   │   ├── prisma.ts         # Database client (LibSQL adapter)
+│   │   ├── db.ts             # Mongoose connection utility
+│   │   ├── models/           # Mongoose schemas & models
 │   │   ├── utils.ts          # Formatting & constants
 │   │   └── validations.ts    # Zod schemas
-│   └── types/
-│       └── next-auth.d.ts    # Session type augmentation
 ├── .env                      # Environment variables
 ├── package.json
 └── tsconfig.json
